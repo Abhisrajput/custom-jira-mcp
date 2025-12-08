@@ -1,0 +1,29 @@
+{
+  "name": "jira-risk-mcp-server",
+  "version": "2.0.0",
+  "description": "MCP Server for Jira + Risk Management integration with Copilot Studio",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.24.0",
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "xlsx": "^0.18.5",
+    "zod": "^3.23.8"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "jira",
+    "risk-management",
+    "copilot-studio"
+  ],
+  "author": "",
+  "license": "MIT"
+}

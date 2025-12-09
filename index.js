@@ -1,4 +1,4 @@
-// index.js – Jira MCP Server (Weekly/Biweekly Word Report with Download Link)
+// index.js – Jira MCP Server (Render-ready, Word download support)
 
 require("dotenv").config();
 const express = require("express");
@@ -16,20 +16,29 @@ const app = express();
 app.use(express.json());
 
 /* =====================================================
-   CONFIG
+   CONFIG (RENDER SAFE)
 ===================================================== */
 const API_KEY = process.env.MCP_API_KEY || "123456";
+const PORT = process.env.PORT || 3000;
+
+// ✅ MUST be set in Render
+// BASE_URL=https://custom-jira-mcp.onrender.com
+const BASE_URL =
+  process.env.BASE_URL || `http://localhost:${PORT}`;
+
 const JIRA_BASE_URL = process.env.JIRA_BASE_URL;
 const JIRA_BROWSE_BASE_URL =
-  process.env.JIRA_BROWSE_BASE_URL || process.env.JIRA_BASE_URL;
+  process.env.JIRA_BROWSE_BASE_URL || JIRA_BASE_URL;
 
-const PORT = process.env.PORT || 3000;
-const REPORTS_DIR = path.join(__dirname, "reports");
+// ✅ Persistent disk path (Render)
+const REPORTS_DIR =
+  process.env.REPORTS_DIR ||
+  path.join(__dirname, "reports");
 
-// Ensure reports folder exists
+// Ensure reports directory exists
 fs.ensureDirSync(REPORTS_DIR);
 
-// ✅ Serve generated Word documents
+// ✅ Serve Word documents publicly
 app.use("/reports", express.static(REPORTS_DIR));
 
 /* =====================================================
@@ -76,7 +85,7 @@ function extractDescription(adf) {
 }
 
 /* =====================================================
-   PIXEL-ALIGNED REPORT BUILDER (TEXT)
+   PIXEL-PERFECT REPORT BUILDER
 ===================================================== */
 function buildReport(projectKey, issues, period) {
   const now = new Date();
@@ -216,8 +225,7 @@ async function generateWordDoc(filename, textContent) {
   });
 
   const buffer = await Packer.toBuffer(doc);
-  const filePath = path.join(REPORTS_DIR, filename);
-  await fs.writeFile(filePath, buffer);
+  await fs.writeFile(path.join(REPORTS_DIR, filename), buffer);
 }
 
 /* =====================================================
@@ -226,12 +234,12 @@ async function generateWordDoc(filename, textContent) {
 function createMcpServer() {
   const server = new McpServer({
     name: "jira-mcp",
-    version: "5.0.0",
+    version: "6.0.0",
   });
 
   server.tool(
     "generate_status_report",
-    "Generate weekly or biweekly Jira status report (Word download link)",
+    "Generate weekly or biweekly Jira status report (Word download)",
     {
       projectKey: z.string(),
       period: z.enum(["weekly", "biweekly"]),
@@ -268,7 +276,7 @@ function createMcpServer() {
       const filename = `${projectKey}_${period}_status_${Date.now()}.docx`;
       await generateWordDoc(filename, reportText);
 
-      const downloadUrl = `http://localhost:${PORT}/reports/${filename}`;
+      const downloadUrl = `${BASE_URL}/reports/${filename}`;
 
       return {
         content: [
@@ -288,8 +296,9 @@ function createMcpServer() {
    SERVER BOOTSTRAP
 ===================================================== */
 app.use("/mcp", (req, res, next) => {
-  if (req.headers["x-api-key"] !== API_KEY)
+  if (req.headers["x-api-key"] !== API_KEY) {
     return res.status(401).json({ error: "Unauthorized" });
+  }
   next();
 });
 
@@ -307,10 +316,6 @@ app.post("/mcp", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(
-    `✅ Jira MCP running on http://localhost:${PORT}`
-  );
-  console.log(
-    `✅ Reports available at http://localhost:${PORT}/reports`
-  );
+  console.log(`✅ Jira MCP running on ${BASE_URL}`);
+  console.log(`✅ Reports available at ${BASE_URL}/reports`);
 });

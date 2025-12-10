@@ -15,7 +15,14 @@ const PptxGenJS = require("pptxgenjs");
 
 const app = express();
 const API_KEY = process.env.MCP_API_KEY || "123456";
-const REPORTS_DIR = path.join(__dirname, "reports");
+
+// ✅ Persistent disk path (Render)
+const REPORTS_DIR =
+  process.env.REPORTS_DIR ||
+  path.join(__dirname, "reports");
+
+
+// const REPORTS_DIR = path.join(__dirname, "reports");
 
 // Ensure reports folder exists
 if (!fs.existsSync(REPORTS_DIR)) {
@@ -661,7 +668,8 @@ function createMcpServer() {
       fs.writeFileSync(filepath, Buffer.from(uint8Array));
       
       var port = process.env.PORT || 3000;
-      var downloadUrl = "http://localhost:" + port + "/reports/" + filename;
+      var BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+      var downloadUrl = BASE_URL + "/reports/" + filename;
       
       // Build summary
       var summary = "Status report generated for project " + args.projectKey + "\n\n";

@@ -1,12 +1,10 @@
 {
-  "name": "jira-docgen-mcp-server",
-  "version": "2.2.0",
-  "description": "Jira MCP + Document Generation Server with FREE PptxGenJS",
+  "name": "jira-status-mcp-server",
+  "version": "3.0.0",
+  "description": "Jira MCP Server with Tavant-Styled PPTX Status Reports",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "start:jira": "node jira-mcp-server.js",
-    "start:docgen": "node doc-gen-server.js",
     "dev": "node --watch index.js"
   },
   "dependencies": {
